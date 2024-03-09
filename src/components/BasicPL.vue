@@ -8,6 +8,7 @@ onMounted(async () => {
   const context = (canvas).getContext("2d");
   canvas!.width = document.documentElement.clientWidth
   canvas!.height = document.documentElement.clientHeight
+  console.log(canvas!.height)
   const screenRatio = canvas!.width / canvas!.height
 
   const parameters = window.localStorage.getItem('parameters') ? JSON.parse(window.localStorage.getItem('parameters')!) : defaultConfig
@@ -39,10 +40,12 @@ onMounted(async () => {
 
     for (let i = 0; i < n; i++) {
       context!.beginPath();
-      const x = positionsX[i] * canvas!.clientWidth;
-      const y = positionsY[i] * canvas!.clientHeight
+      let x = positionsX[i] * canvas!.clientWidth;
+      let y = positionsY[i] * canvas!.clientHeight
+      x = screenRatio < 1 ? x * (1 / screenRatio) : x;
+      y = screenRatio > 1 ? y * screenRatio : y;
       if (!(x < 1) && !(y < 1) && !(x > canvas!.clientWidth - 1) && !(y > canvas!.clientHeight - 1)) { //avoid blinking at edges
-        context!.arc(x, y * screenRatio, 1, 0, 2 * Math.PI); //js compilers are smart enough for me not to have to move math.pi to var
+        context!.arc(x, y, 1, 0, 2 * Math.PI); //js compilers are smart enough for me not to have to move math.pi to var
         context!.fillStyle = `hsl(${360 * (colors[i] / m)},100%,50%)`;
         context!.fill();
       }
@@ -108,7 +111,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <canvas id="pl" class="absolute top-0 left-0 "></canvas>
+  <canvas id="pl" class="fixed top-0 left-0 "></canvas>
 </template>
 
 <style scoped></style>../shared/defaultConfig
