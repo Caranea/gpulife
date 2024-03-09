@@ -1,26 +1,22 @@
 <script setup lang="ts">
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue'
-import { XMarkIcon } from '@heroicons/vue/24/outline'
+import { XMarkIcon, ChevronDoubleLeftIcon } from '@heroicons/vue/24/outline'
 import { ref, Ref } from 'vue';
-import { defaultConfig } from './shared/defaultComfig';
-
-const open = ref(true)
-const fps = ref('')
-const parameters = ref(window.localStorage.getItem('parameters') ? JSON.parse(window.localStorage.getItem('parameters')!) : defaultConfig);
-
+import { defaultConfig } from './shared/defaultConfig';
 import Particles from './components/Particles.vue';
-import Unpotimized from './components/Unpotimized.vue';
-
 import BasicPL from './components/BasicPL.vue';
 import Osci from './components/Osci.vue';
 import Optimized from './components/Optimized.vue';
 
-
+const open = ref(true)
+const fps = ref('')
+const parameters = ref(window.localStorage.getItem('parameters') ? JSON.parse(window.localStorage.getItem('parameters')!) : defaultConfig);
 const activeSim = ref(window.localStorage.getItem('sim') as unknown as Ref<string> || 'webGPU')
+const maxRadius = ref((2 * (64000 / parameters.value.particlesCountGPU)) > 2.0 ? 2.0 : (2 * (64000 / parameters.value.particlesCountGPU)).toFixed(1))
 
 function switchSim(sim: string) {
   window.localStorage.setItem('sim', sim);
-  window.location.reload();
+  reload()
 }
 
 function reload() {
@@ -29,32 +25,23 @@ function reload() {
 
 function updateParameters() {
   window.localStorage.setItem('parameters', JSON.stringify(parameters.value))
-  window.location.reload()
+  reload()
 }
 
 function resetParameters() {
   window.localStorage.setItem('parameters', JSON.stringify(defaultConfig))
-  window.location.reload()
+  reload()
 }
-const maxRadius = ref((2 * (64000 / parameters.value.particlesCountGPU)) > 2.0 ? 2.0 : (2 * (64000 / parameters.value.particlesCountGPU)).toFixed(1))
-console.log(maxRadius.value)
 </script>
 
 <template>
   <div class="flex">
-
-    <!-- <div>
-      <Particles @fps="fps = $event" />
-    </div> -->
-    <!-- <div>
-      <Unpotimized />
-    </div> -->
     <div v-if="activeSim === 'webGPU'">
       <Particles @fps="fps = $event" />
     </div>
-    <!-- <div v-if="activeSim === 'osci'">
+    <div v-if="activeSim === 'osci'">
       <Osci />
-    </div>-->
+    </div>
     <div v-if="activeSim === 'basicLife'">
       <BasicPL />
     </div>
@@ -62,10 +49,17 @@ console.log(maxRadius.value)
       <Optimized />
     </div>
   </div>
+  <button v-if="!open" type="button" class="absolute right-0
+                       rounded-md bg-gray-50 dark:bg-black py text-gray-400 hover:text-gray-500 focus:outline-none "
+    @click="open = true">
+    <span class="absolute -inset-2.5" />
+    <span class="sr-only">Menu</span>
+    <ChevronDoubleLeftIcon class="h-6 w-6" aria-hidden="true" />
+  </button>
+
   <TransitionRoot as="template" :show="open">
     <Dialog as="div" class="relative z-10" @close="open = false">
       <div class="fixed inset-0" />
-
       <div class="fixed inset-0 overflow-hidden ">
         <div class="absolute inset-0 overflow-hidden">
           <div class="pointer-events-none fixed inset-y-0 right-0 flex max-w-full pl-10">
@@ -98,45 +92,70 @@ console.log(maxRadius.value)
                     </small>
                     <div v-if="activeSim === 'basicLife'" class="flex items-center">
                       <label for="disabled-range"
-                        class=" w-[100px] block mr-2 text-sm font-medium text-gray-900 dark:text-white">Particles
+                        class=" w-[70px] block mr-2 text-sm font-medium text-gray-900 dark:text-white">Particles
                       </label>
                       <input @change="updateParameters()" v-model="parameters.particlesCountJS" type="range" step="100"
                         min="500" max="5000"
-                        class="w-[100px] mr-2 w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700">
+                        class="w-[150px] mr-2 w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700">
                       <span>{{ parameters.particlesCountJS }}</span>
                     </div>
                     <div v-if="activeSim === 'webGPU'" class="flex items-center">
                       <label for="disabled-range"
-                        class=" w-[100px] block mr-2 text-sm font-medium text-gray-900 dark:text-white">Particles
+                        class=" w-[70px] block mr-2 text-sm font-medium text-gray-900 dark:text-white">Particles
                       </label>
                       <input @change="updateParameters()" v-model="parameters.particlesCountGPU" type="range"
                         step="6400" min="6400" max="1024000"
-                        class="w-[100px] mr-2 w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700">
+                        class="w-[150px] mr-2 w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700">
                       <span>{{ parameters.particlesCountGPU }}</span>
                     </div>
-                    <div class="flex items-center">
+                    <div v-if="activeSim === 'optimizedLife'" class="flex items-center">
                       <label for="disabled-range"
-                        class="w-[100px] block mr-2 text-sm font-medium text-gray-900 dark:text-white">Radius </label>
+                        class=" w-[70px] block mr-2 text-sm font-medium text-gray-900 dark:text-white">Particles
+                      </label>
+                      <input @change="updateParameters()" v-model="parameters.particlesCountQTJS" type="range"
+                        step="1000" min="5000" max="50000"
+                        class="w-[150px] mr-2 w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700">
+                      <span>{{ parameters.particlesCountQTJS }}</span>
+                    </div>
+                    <div v-if="activeSim === 'optimizedLife'" class="flex items-center">
+                      <label for="disabled-range"
+                        class="w-[70px] block mr-2 text-sm font-medium text-gray-900 dark:text-white">Radius </label>
+                      <input @change="updateParameters()" v-model="parameters.interactionRadiusQTJS" step="0.005"
+                        type="range" min="0.01" max="0.1"
+                        class="w-[150px] mr-2 w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700">
+                      <span>{{ parameters.interactionRadiusQTJS }}</span>
+                    </div>
+                    <div v-if="activeSim === 'webGPU'" class="flex items-center">
+                      <label for="disabled-range"
+                        class="w-[70px] block mr-2 text-sm font-medium text-gray-900 dark:text-white">Radius </label>
                       <input @change="updateParameters()" v-model="parameters.interactionRadius" step="0.1" type="range"
                         min="0.1" :max="maxRadius"
-                        class="w-[100px] mr-2 w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700">
+                        class="w-[150px] mr-2 w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700">
                       <span>{{ parameters.interactionRadius }}</span>
                     </div>
-                    <div class="flex items-center">
+                    <div v-if="activeSim === 'basicLife'" class="flex items-center">
                       <label for="disabled-range"
-                        class="w-[100px] block mr-2 text-sm font-medium text-gray-900 dark:text-white">Max. opacity
+                        class="w-[70px] block mr-2 text-sm font-medium text-gray-900 dark:text-white">Radius </label>
+                      <input @change="updateParameters()" v-model="parameters.interactionRadiusJS" step="0.1"
+                        type="range" min="0.1" max="1.0"
+                        class="w-[150px] mr-2 w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700">
+                      <span>{{ parameters.interactionRadiusJS }}</span>
+                    </div>
+                    <div v-if="activeSim === 'webGPU'" class="flex items-center">
+                      <label for="disabled-range"
+                        class="w-[70px] block mr-2 text-sm font-medium text-gray-900 dark:text-white">Max. opacity
                       </label>
                       <input @change="updateParameters()" v-model="parameters.opacity" step="5" type="range" min="25"
                         max="100"
-                        class="w-[100px] mr-2 w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700">
+                        class="w-[150px] mr-2 w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700">
                       <span>{{ parameters.opacity }}%</span>
                     </div>
-                    <div class="flex items-center">
+                    <div v-if="activeSim !== 'osci'" class="flex items-center">
                       <label for="disabled-range"
-                        class="w-[100px] block mr-2 text-sm font-medium text-gray-900 dark:text-white">Colors</label>
+                        class="w-[70px] block mr-2 text-sm font-medium text-gray-900 dark:text-white">Colors</label>
                       <input @change="updateParameters()" v-model="parameters.colorsNumber" step="1" type="range"
                         min="1" max="9"
-                        class="w-[100px] mr-2 w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700">
+                        class="w-[150px] mr-2 w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700">
                       <span>{{ parameters.colorsNumber }}</span>
                     </div>
                   </div>
@@ -161,4 +180,4 @@ console.log(maxRadius.value)
       </div>
     </Dialog>
   </TransitionRoot>
-</template>
+</template>./shared/defaultConfig

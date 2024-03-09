@@ -1,57 +1,28 @@
 <script setup lang="ts">
 declare var Rectangle: any, QuadTree: any, Point: any;
 
-window.addEventListener('DOMContentLoaded', function () {
-  const canvas = document.getElementById("pl");
-  const context = (canvas as HTMLCanvasElement)!.getContext("2d");
-  context!.canvas!.width = window.innerWidth * 0.5;
-  context!.canvas!.height = window.innerWidth * 0.5;
+import { defaultConfig } from '../shared/defaultConfig';
+import { createRandomMatrix } from '../shared/functions';
+import { onMounted } from 'vue';
+
+onMounted(async () => {
+  const canvas = document.getElementById("pl") as HTMLCanvasElement;
+  const context = (canvas)!.getContext("2d");
+  canvas!.width = document.documentElement.clientWidth
+  canvas!.height = document.documentElement.clientHeight
+  const screenRatio = canvas!.width / canvas!.height
   let r1 = new Rectangle(0.5, 0.5, 1, 1);
 
-  //system variables
-
-  const n = 50000;
+  const parameters = window.localStorage.getItem('parameters') ? JSON.parse(window.localStorage.getItem('parameters')!) : defaultConfig
+  const n = parameters.particlesCountQTJS;
   const speed = 0.2;
   const fr = Math.pow(0.5, 1);
-  const maxRadius = 0.01
-  const m = 3;
+  const maxRadius = parameters.interactionRadiusQTJS;
+  const m = parameters.colorsNumber;
 
-  // const n = 20000;
-  // const speed = 0.2;
-  // const fr = Math.pow(0.5, 1);
-  // const maxRadius = 0.01;
-  // const m = 4;
+  const matrix = createRandomMatrix(m);
 
-  // const n = 10000;
-  // const speed = 0.2;
-  // const fr = Math.pow(0.5, 1);
-  // const maxRadius = 0.02;
-  // const m = 4;
-
-  const matrix = createRandomMatrix();
-
-  function createRandomMatrix() {
-    const rows = [];
-    for (let i = 0; i < m; i++) {
-      const row = [];
-      for (let j = 0; j < m; j++) {
-        row.push(Math.random() * 2 - 1);
-      }
-      rows.push(row);
-    }
-    return rows;
-  }
-
-  console.log(matrix)
-
-  //no benefit from using typed arrays
-
-  // let colors = new Int32Array(n);
-  // let positionsX = new Float32Array(n);
-  // let positionsY = new Float32Array(n);
-  // let velocitiesX = new Float32Array(n);
-  // let velocitiesY = new Float32Array(n);
-
+  //no performance benefit from using typed arrays
   let colors: number[] = [];
   let positionsX: any[] = [];
   let positionsY: any[] = [];
@@ -66,8 +37,6 @@ window.addEventListener('DOMContentLoaded', function () {
     velocitiesY[i] = 0;
   }
 
-  console.log(colors)
-
   requestAnimationFrame(renderFrame);
 
   async function renderFrame() {
@@ -79,7 +48,7 @@ window.addEventListener('DOMContentLoaded', function () {
       const x = positionsX[i] * canvas!.clientWidth;
       const y = positionsY[i] * canvas!.clientHeight;
 
-      context!.arc(x, y, 1, 0, 2 * Math.PI);
+      context!.arc(x, y * screenRatio, .5, 0, 2 * Math.PI);
       context!.fillStyle = `hsl(${360 * (colors[i] / m)},100%,50%)`;
       context!.fill();
     }
@@ -88,7 +57,7 @@ window.addEventListener('DOMContentLoaded', function () {
   }
 
   function force(d: number, f: number) {
-    let repRadius = 0.2;
+    let repRadius = 0.1;
     if (d < repRadius) {
       return d / repRadius - 1;
     } else if (repRadius < d) {
@@ -99,22 +68,13 @@ window.addEventListener('DOMContentLoaded', function () {
   }
 
   let qt = new QuadTree(r1);
-  let iteration = 0;
 
   for (let i = 0; i < n; i++) {
     qt.insert(new Point(positionsX[i], positionsY[i]));
   }
 
-  console.log(qt);
-
   function updateParticles() {
-    let t = Date.now();
-
-    iteration++;
-    // if (iteration % 4 === 0) {
-    iteration = 0;
     qt = new QuadTree(r1);
-
     for (let i = 0; i < n; i++) {
       qt.insert(new Point(positionsX[i], positionsY[i]));
     }
@@ -146,7 +106,6 @@ window.addEventListener('DOMContentLoaded', function () {
 
       totalForceX *= maxRadius;
       totalForceY *= maxRadius;
-
       velocitiesX[i] *= fr;
       velocitiesY[i] *= fr;
       velocitiesX[i] += totalForceX * speed;
@@ -157,7 +116,6 @@ window.addEventListener('DOMContentLoaded', function () {
       let x = positionsX[i] + velocitiesX[i] * speed;
       let y = positionsY[i] + velocitiesY[i] * speed;
 
-
       x = x > 1 ? x - 1 : x;
       y = y > 1 ? y - 1 : y;
       x = x < 0 ? x + 1 : x;
@@ -166,13 +124,12 @@ window.addEventListener('DOMContentLoaded', function () {
       positionsX[i] = x;
       positionsY[i] = y;
     }
-    console.log(Date.now() - t);
   }
 })
 </script>
 
 <template>
-  <canvas id="pl" width="1000px" height="1000px"></canvas>
+  <canvas id="pl" class="absolute top-0 left-0 "></canvas>
 </template>
 
-<style scoped></style>
+<style scoped></style>../shared/defaultConfig

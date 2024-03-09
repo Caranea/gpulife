@@ -1,21 +1,17 @@
 <script setup lang="ts">
+declare var GPUBufferUsage: any;
+import { onMounted } from 'vue';
+import { HSLToRGB } from '../shared/functions';
 
 const NUM_COLORS = 1
 const WORKGROUP_SIZE = 64;
-const NUM_WORKGROUPS = 1000;
+const NUM_WORKGROUPS = 500;
 const NUM_PARTICLES = WORKGROUP_SIZE * NUM_WORKGROUPS;
 const PARTICLE_SIZE = 2;
 
-(async () => {
-
-  console.log('num particles ', NUM_PARTICLES)
-
-  //////////////////////////////////////////
-  // Set up WebGPU adapter
-  //////////////////////////////////////////
-
-  const adapter = await navigator.gpu.requestAdapter();
-  const presentationFormat = navigator.gpu.getPreferredCanvasFormat(adapter);
+onMounted(async () => {
+  const adapter = await (navigator as any).gpu.requestAdapter();
+  const presentationFormat = (navigator as any).gpu.getPreferredCanvasFormat(adapter);
 
   ////////////////////////////////////
   // Set up device and canvas context
@@ -23,12 +19,15 @@ const PARTICLE_SIZE = 2;
 
   const device = await adapter.requestDevice();
 
-  const canvas = document.getElementById("webgpu-canvas");
-  canvas!.width = window.innerWidth * 0.5;
-  canvas!.height = canvas!.width;
+  const canvas = document.getElementById("webgpu-canvas") as HTMLCanvasElement;
+
+  canvas!.width = document.documentElement.clientWidth
+  canvas!.height = document.documentElement.clientHeight
+
+  const screenRatio = canvas!.width / canvas!.height
   const context = canvas!.getContext("webgpu");
 
-  context.configure({
+  (context as any)!.configure({
     device,
     format: presentationFormat
   });
@@ -51,88 +50,6 @@ const PARTICLE_SIZE = 2;
     positionBufferData[i + 3] = 1;
   }
 
-
-
-
-  ////////////////////////////////////////////////////////
-  // Set up sectors for space partitioning
-  ////////////////////////////////////////////////////////
-
-  const sectionBufferData = new Int32Array(8 * 2); //starting and ending index
-
-  const sectionBuffer = device.createBuffer({
-    size: sectionBufferData.byteLength,
-    usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.STORAGE,
-  });
-
-
-  for (let i = 0; i < sectionBufferData.length; i++) {
-    sectionBufferData[i] = 0
-  }
-  const sectorsParticles: any = [[], [], [], [], [], [], [], []]
-
-  for (let i = 0; i < positionBufferData.length; i += 4) {
-    const particle = new Float32Array(4);
-    particle[0] = positionBufferData[i]
-    particle[1] = positionBufferData[i + 1]
-    particle[2] = positionBufferData[i + 2]
-    particle[3] = positionBufferData[i + 3]
-
-    if (positionBufferData[i + 1] >= 0) {
-      if (positionBufferData[i] <= -0.5) {
-        sectorsParticles[0].push(...particle)
-      } else if (positionBufferData[i] <= 0 && positionBufferData[i] > -0.5) {
-        sectorsParticles[1].push(...particle)
-      } else if (positionBufferData[i] <= 0.5 && positionBufferData[i] > 0) {
-        sectorsParticles[2].push(...particle)
-      } else if (positionBufferData[i] <= 1 && positionBufferData[i] > 0.5) {
-        sectorsParticles[3].push(...particle)
-      }
-    } else if (positionBufferData[i + 1] < 0) {
-      if (positionBufferData[i] <= -0.5) {
-        sectorsParticles[4].push(...particle)
-      } else if (positionBufferData[i] <= 0 && positionBufferData[i] > -0.5) {
-        sectorsParticles[5].push(...particle)
-      } else if (positionBufferData[i] <= 0.5 && positionBufferData[i] > 0) {
-        sectorsParticles[6].push(...particle)
-      } else if (positionBufferData[i] <= 1 && positionBufferData[i] > 0.5) {
-        sectorsParticles[7].push(...particle)
-      }
-    }
-
-  }
-
-
-  let positionBufferDataNew = new Float32Array(NUM_PARTICLES * 4);
-
-  let helperIndex = 0
-
-  sectorsParticles.forEach((sector: any, index: any) => {
-    // sectionBufferData[index] = sector.length;
-
-    if (index > 0) {
-      const prevEndingIndex = (index * 2) - 1
-      const startingIndex = (index * 2)
-      sectionBufferData[(index * 2) - 1] = helperIndex - 4
-      sectionBufferData[index * 2] = helperIndex
-    }
-
-    for (let i = 0; i < sector.length; i += 4) {
-      positionBufferDataNew[helperIndex] = sector[i]
-      positionBufferDataNew[helperIndex + 1] = sector[i + 1]
-      positionBufferDataNew[helperIndex + 2] = sector[i + 2]
-      positionBufferDataNew[helperIndex + 3] = 1;
-      helperIndex += 4
-    }
-
-    if (index == 7) {
-      sectionBufferData[index * 2 + 1] = helperIndex
-    }
-  })
-  // console.log(sectorsParticles)
-  // console.log(positionBufferData)
-  // console.log(positionBufferDataNew)
-
   device.queue.writeBuffer(positionBuffer, 0, positionBufferData);
 
   const velocityBuffer = device.createBuffer({
@@ -147,10 +64,6 @@ const PARTICLE_SIZE = 2;
     velocityBufferData[i + 3] = 0;
   }
   device.queue.writeBuffer(velocityBuffer, 0, velocityBufferData);
-  // device.queue.writeBuffer(sectionBuffer, 0, sectionBufferData);
-
-
-
 
   ///////////////////////////////////
   // Create compute shader module
@@ -193,7 +106,6 @@ const PARTICLE_SIZE = 2;
                 velocity.x+=forcex;
                 velocity.y+=forcey;
                 velocity.z+=forcez;
-
 
                 velocity*=0.5;
 
@@ -253,8 +165,6 @@ const PARTICLE_SIZE = 2;
     colorBufferData[i + 1] = rgbValues[1];
     colorBufferData[i + 2] = rgbValues[2];
     colorBufferData[i + 3] = 70;
-    // colorBufferData[i + 3] = 255;
-
   }
 
   const colorBuffer = device.createBuffer({
@@ -289,9 +199,10 @@ const PARTICLE_SIZE = 2;
                 @location(2) position: vec3f
             ) -> VSOut {
                 var vsOut: VSOut;
-                vsOut.clipPosition = vec4f(vertexPosition * vertexUniforms.particleSize / vertexUniforms.screenDimensions + position.xy, position.z, 1.0);
+                var adjustedP = position;
+                adjustedP.y *= ${screenRatio};
+                vsOut.clipPosition = vec4f(vertexPosition * vertexUniforms.particleSize / vertexUniforms.screenDimensions + adjustedP.xy, adjustedP.z, 1.0);
                 vsOut.color = color;
-
                 return vsOut;
             }             
 
@@ -393,7 +304,7 @@ const PARTICLE_SIZE = 2;
 
   const renderPassDescriptor = {
     colorAttachments: [{
-      view: context.getCurrentTexture().createView(),
+      view: (context as any).getCurrentTexture().createView(),
       loadOp: "clear",
       storeOp: "store",
       clearValue: [0, 0, 0, 1]
@@ -422,7 +333,7 @@ const PARTICLE_SIZE = 2;
     // Get current canvas texture
     ////////////////////////////////
 
-    renderPassDescriptor.colorAttachments[0].view = context.getCurrentTexture().createView();
+    renderPassDescriptor.colorAttachments[0].view = (context as any).getCurrentTexture().createView();
 
     ///////////////////////
     // Encode render pass
@@ -449,40 +360,9 @@ const PARTICLE_SIZE = 2;
 
     requestAnimationFrame(draw);
   });
-})();
-function HSLToRGB(h, s, l) {
-  s /= 100;
-  l /= 100;
-
-  let c = (1 - Math.abs(2 * l - 1)) * s,
-    x = c * (1 - Math.abs((h / 60) % 2 - 1)),
-    m = l - c / 2,
-    r = 0,
-    g = 0,
-    b = 0;
-
-  if (0 <= h && h < 60) {
-    r = c; g = x; b = 0;
-  } else if (60 <= h && h < 120) {
-    r = x; g = c; b = 0;
-  } else if (120 <= h && h < 180) {
-    r = 0; g = c; b = x;
-  } else if (180 <= h && h < 240) {
-    r = 0; g = x; b = c;
-  } else if (240 <= h && h < 300) {
-    r = x; g = 0; b = c;
-  } else if (300 <= h && h < 360) {
-    r = c; g = 0; b = x;
-  }
-  r = Math.round((r + m) * 255);
-  g = Math.round((g + m) * 255);
-  b = Math.round((b + m) * 255);
-
-  return [r, g, b]
-}
+});
 </script>
 
 <template>
-  <canvas id="webgpu-canvas"></canvas>
+  <canvas id="webgpu-canvas" class="absolute top-0 left-0 "></canvas>
 </template>
-

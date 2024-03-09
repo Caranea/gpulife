@@ -4,7 +4,7 @@ declare var GPUBufferUsage: any;
 import { onMounted, ref } from 'vue';
 import { HSLToRGB, createRandomMatrix, fix } from '../shared/functions.ts'
 import Loader from './Loader.vue'
-import { defaultConfig } from '../shared/defaultComfig.ts';
+import { defaultConfig } from '../shared/defaultConfig.ts';
 
 const emit = defineEmits(['fps'])
 const text = ref('Loading...')
@@ -479,4 +479,4 @@ onMounted(async () => {
 <template>
   <Loader :text="text" />
   <canvas id="webgpu-canvas" class="absolute top-0 left-0 "></canvas>
-</template>
+</template>../shared/defaultConfig.ts
