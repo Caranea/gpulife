@@ -45,10 +45,11 @@ onMounted(async () => {
 
     for (let i = 0; i < n; i++) {
       context!.beginPath();
-      const x = positionsX[i] * canvas!.clientWidth;
-      const y = positionsY[i] * canvas!.clientHeight;
-
-      context!.arc(x, y * screenRatio, .5, 0, 2 * Math.PI);
+      let x = positionsX[i] * canvas!.clientWidth;
+      let y = positionsY[i] * canvas!.clientHeight;
+      x = screenRatio < 1 ? x * (1 / screenRatio) : x;
+      y = screenRatio > 1 ? y * screenRatio : y;
+      context!.arc(x, y, .5, 0, 2 * Math.PI);
       context!.fillStyle = `hsl(${360 * (colors[i] / m)},100%,50%)`;
       context!.fill();
     }
