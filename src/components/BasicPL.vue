@@ -8,7 +8,6 @@ onMounted(async () => {
   const context = (canvas).getContext("2d");
   canvas!.width = document.documentElement.clientWidth
   canvas!.height = document.documentElement.clientHeight
-  console.log(canvas!.height)
   const screenRatio = canvas!.width / canvas!.height
 
   const parameters = window.localStorage.getItem('parameters') ? JSON.parse(window.localStorage.getItem('parameters')!) : defaultConfig
