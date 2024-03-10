@@ -211,4 +211,4 @@ function resetParameters() {
       </div>
     </Dialog>
   </TransitionRoot>
-</template>./shared/defaultConfig
+</template>

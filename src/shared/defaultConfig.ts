@@ -4,9 +4,9 @@ export const defaultConfig = {
   interactionRadiusJS: 0.1,
   interactionRadiusQTJS: 0.02,
   particlesCountGPU: 64000,
-  particlesCountJS: 2000,
+  particlesCountJS: 1000,
   particlesCountQTJS: 10000,
   opacity: 50,
-  forceFunction: "2",
+  forceFunction: "1",
   repulsiveRadius: 0.05,
 };
