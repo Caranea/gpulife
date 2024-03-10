@@ -93,7 +93,7 @@ onMounted(async () => {
     }
   }
 
-  function force(d: number, f: number) {
+  function force(d: number, f: number): number {
     let repRadius = parameters.repulsiveRadius;
     switch (parameters.forceFunction) {
       case '1':
@@ -109,11 +109,17 @@ onMounted(async () => {
           return f * (1 - d)
         }
       case '3':
-        if (d <= repRadius) {
-          return d / repRadius - 1
-        } else {
-          return f * (1 - d)
-        }
+        return defaultForce(d, f, repRadius);
+      default:
+        return defaultForce(d, f, repRadius)
+    }
+  }
+
+  function defaultForce(d: number, f: number, repRadius: number): number {
+    if (d <= repRadius) {
+      return d / repRadius - 1
+    } else {
+      return f * (1 - d)
     }
   }
 })
