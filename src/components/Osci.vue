@@ -1,6 +1,7 @@
 <script setup lang="ts">
 declare var GPUBufferUsage: any;
-import { onMounted } from 'vue';
+import { onMounted, ref } from 'vue';
+import Loader from './Loader.vue'
 import { HSLToRGB } from '../shared/functions';
 
 const NUM_COLORS = 1
@@ -8,9 +9,17 @@ const WORKGROUP_SIZE = 64;
 const NUM_WORKGROUPS = 500;
 const NUM_PARTICLES = WORKGROUP_SIZE * NUM_WORKGROUPS;
 const PARTICLE_SIZE = 2;
+const text = ref('Loading...')
 
 onMounted(async () => {
-  const adapter = await (navigator as any).gpu.requestAdapter();
+  let adapter;
+
+  try {
+    adapter = await (navigator as any).gpu.requestAdapter();
+  } catch (e) {
+    text.value = 'Your browser does not support webGPU. Use different browser, enable webGPU, or switch to non-gpu simulation.'
+  }
+
   const presentationFormat = (navigator as any).gpu.getPreferredCanvasFormat(adapter);
 
   ////////////////////////////////////
@@ -364,5 +373,6 @@ onMounted(async () => {
 </script>
 
 <template>
+  <Loader :text="text" />
   <canvas id="webgpu-canvas" class="absolute top-0 left-0 "></canvas>
 </template>

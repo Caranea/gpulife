@@ -7,4 +7,6 @@ export const defaultConfig = {
   particlesCountJS: 2000,
   particlesCountQTJS: 10000,
   opacity: 50,
+  forceFunction: "1",
+  repulsiveRadius: 0.05,
 };

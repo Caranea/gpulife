@@ -132,5 +132,3 @@ onMounted(async () => {
 <template>
   <canvas id="pl" class="absolute top-0 left-0 "></canvas>
 </template>
-
-<style scoped></style>../shared/defaultConfig
