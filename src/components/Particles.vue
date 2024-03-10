@@ -481,4 +481,4 @@ onMounted(async () => {
 <template>
   <Loader :text="text" />
   <canvas id="webgpu-canvas" class="absolute top-0 left-0 "></canvas>
-</template>../shared/defaultConfig.ts
+</template>
