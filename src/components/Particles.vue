@@ -25,17 +25,18 @@ const forceFactor = fix(interactionRadius * helperConst * Math.pow(10, (1.25 * i
 onMounted(async () => {
   const matrix = createRandomMatrix(m);
   let adapter;
-
+  let presentationFormat;
+  let device;
   try {
     adapter = await (navigator as any).gpu.requestAdapter({
       powerPreference: "high-performance"
     });
+    presentationFormat = (navigator as any).gpu.getPreferredCanvasFormat(adapter);
+    device = await adapter.requestDevice();
   } catch (e) {
     text.value = 'Your browser does not support webGPU. Use different browser, enable webGPU, or switch to non-gpu simulation.'
   }
 
-  const presentationFormat = (navigator as any).gpu.getPreferredCanvasFormat(adapter);
-  const device = await adapter.requestDevice();
   const canvas = document.getElementById("webgpu-canvas") as HTMLCanvasElement;
 
   canvas!.width = document.documentElement.clientWidth
