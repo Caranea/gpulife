@@ -9,7 +9,6 @@ import { defaultConfig } from '../shared/defaultConfig.ts';
 const emit = defineEmits(['fps'])
 const text = ref('Loading...')
 const parameters = window.localStorage.getItem('parameters') ? JSON.parse(window.localStorage.getItem('parameters')!) : defaultConfig
-
 const m = parameters.colorsNumber;
 const workGroupSize = 64;
 const workGroupsNum = Math.floor(parameters.particlesCountGPU / 64);
@@ -209,7 +208,7 @@ onMounted(async () => {
 
                 let interactionRadius = ${interactionRadius};
                 let forceFactor = ${interactionRadius}/${forceFactor};
-
+                
                 for (var i = sectorsStartIndex;i < sectorsEndIndex; i++) {
                   let xdiff = positions[i].x - position.x;
                   let ydiff = positions[i].y - position.y;

@@ -8,7 +8,7 @@ import BasicPL from './components/BasicPL.vue';
 import Osci from './components/Osci.vue';
 import Optimized from './components/Optimized.vue';
 
-const open = ref(true)
+const open = ref(window.localStorage.getItem('open') ? JSON.parse(window.localStorage.getItem('open')!) : true)
 const fps = ref('')
 const parameters = ref(window.localStorage.getItem('parameters') ? JSON.parse(window.localStorage.getItem('parameters')!) : defaultConfig);
 const activeSim = ref(window.localStorage.getItem('sim') as unknown as Ref<string> || 'webGPU')
@@ -17,6 +17,11 @@ const maxRadius = ref((2 * (64000 / parameters.value.particlesCountGPU)) > 2.0 ?
 function switchSim(sim: string) {
   window.localStorage.setItem('sim', sim);
   reload()
+}
+
+function toggleMenu(){
+  open.value = !open.value;
+  window.localStorage.setItem('open', JSON.stringify(open.value))
 }
 
 function reload() {
@@ -58,7 +63,7 @@ function resetParameters() {
   </button>
 
   <TransitionRoot as="template" :show="open">
-    <Dialog as="div" class="relative z-10" @close="open = false">
+    <Dialog as="div" class="relative z-10" @close="toggleMenu()">
       <div class="fixed inset-0" />
       <div class="fixed inset-0 overflow-hidden ">
         <div class="absolute inset-0 overflow-hidden">
@@ -67,13 +72,13 @@ function resetParameters() {
               enter-from="translate-x-full" enter-to="translate-x-0"
               leave="transform transition ease-in-out duration-500 sm:duration-700" leave-from="translate-x-0"
               leave-to="translate-x-full">
-              <DialogPanel class="pointer-events-auto md:w-[20vw] max-w-md">
+              <DialogPanel class="pointer-events-auto md:w-[28vw] max-w-md">
                 <div
                   class="flex h-full flex-col  z-[1000] shadow-lg dark:shadow-gray-900 bg-gray-50 dark:bg-black py-6">
                   <div class="px-4 sm:px-6">
                     <button type="button" class="absolute right-0
                        rounded-md bg-gray-50 dark:bg-black py text-gray-400 hover:text-gray-500 focus:outline-none "
-                      @click="open = false">
+                      @click="toggleMenu()">
                       <span class="absolute -inset-2.5" />
                       <span class="sr-only">Close panel</span>
                       <XMarkIcon class="h-6 w-6" aria-hidden="true" />
@@ -97,7 +102,7 @@ function resetParameters() {
                       <input @change="updateParameters()" v-model="parameters.particlesCountJS" type="range" step="100"
                         min="500" max="5000"
                         class="w-[120px] mr-2 w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700">
-                      <span class="w-[30px]">{{ parameters.particlesCountJS }}</span>
+                      <span class="w-[100px]">{{ parameters.particlesCountJS }}</span>
                     </div>
                     <div v-if="activeSim === 'webGPU'" class="flex items-center">
                       <label
@@ -106,7 +111,7 @@ function resetParameters() {
                       <input @change="updateParameters()" v-model="parameters.particlesCountGPU" type="range"
                         step="6400" min="6400" max="1024000"
                         class="w-[120px] mr-2 w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700">
-                      <span class="w-[30px]">{{ parameters.particlesCountGPU }}</span>
+                      <span class="w-[100px]">{{ parameters.particlesCountGPU }}</span>
                     </div>
                     <div v-if="activeSim === 'optimizedLife'" class="flex items-center">
                       <label
@@ -115,7 +120,7 @@ function resetParameters() {
                       <input @change="updateParameters()" v-model="parameters.particlesCountQTJS" type="range"
                         step="1000" min="5000" max="50000"
                         class="w-[120px] mr-2 w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700">
-                      <span class="w-[30px]">{{ parameters.particlesCountQTJS }}</span>
+                      <span class="w-[100px]">{{ parameters.particlesCountQTJS }}</span>
                     </div>
                     <div v-if="activeSim === 'optimizedLife'" class="flex items-center">
                       <label
@@ -124,7 +129,7 @@ function resetParameters() {
                       <input @change="updateParameters()" v-model="parameters.interactionRadiusQTJS" step="0.005"
                         type="range" min="0.01" max="0.1"
                         class="w-[120px] mr-2 w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700">
-                      <span class="w-[30px]">{{ parameters.interactionRadiusQTJS }}</span>
+                      <span class="w-[100px]">{{ parameters.interactionRadiusQTJS }}</span>
                     </div>
                     <div v-if="activeSim === 'webGPU'" class="flex items-center">
                       <label
@@ -133,7 +138,7 @@ function resetParameters() {
                       <input @change="updateParameters()" v-model="parameters.interactionRadius" step="0.1" type="range"
                         min="0.1" :max="maxRadius"
                         class="w-[120px] mr-2 w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700">
-                      <span class="w-[30px]">{{ parameters.interactionRadius }}</span>
+                      <span class="w-[100px]">{{ parameters.interactionRadius }}</span>
                     </div>
                     <div v-if="activeSim === 'basicLife'" class="flex items-center">
                       <label
@@ -142,7 +147,7 @@ function resetParameters() {
                       <input @change="updateParameters()" v-model="parameters.interactionRadiusJS" step="0.1"
                         type="range" min="0.1" max="1.0"
                         class="w-[120px] mr-2 w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700">
-                      <span class="w-[30px]">{{ parameters.interactionRadiusJS }}</span>
+                      <span class="w-[100px]">{{ parameters.interactionRadiusJS }}</span>
                     </div>
                     <div v-if="activeSim === 'webGPU'" class="flex items-center">
                       <label class="text-xs w-[100px] block mr-2 text-sm font-medium text-gray-900 dark:text-white">Max.
@@ -151,7 +156,7 @@ function resetParameters() {
                       <input @change="updateParameters()" v-model="parameters.opacity" step="5" type="range" min="25"
                         max="100"
                         class="w-[120px] mr-2 w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700">
-                      <span class="w-[30px]">{{ parameters.opacity }}%</span>
+                      <span class="w-[100px]">{{ parameters.opacity }}%</span>
                     </div>
                     <div v-if="activeSim !== 'osci'" class="flex items-center">
                       <label
@@ -159,7 +164,7 @@ function resetParameters() {
                       <input @change="updateParameters()" v-model="parameters.colorsNumber" step="1" type="range"
                         min="1" max="9"
                         class="w-[120px] mr-2 w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700">
-                      <span class="w-[30px]">{{ parameters.colorsNumber }}</span>
+                      <span class="w-[100px]">{{ parameters.colorsNumber }}</span>
                     </div>
                     <div v-if="activeSim === 'basicLife'" class="flex items-center">
                       <label class="text-xs w-[100px] block mr-2 text-sm font-medium text-gray-900 dark:text-white">
@@ -167,7 +172,7 @@ function resetParameters() {
                       <input @change="updateParameters()" v-model="parameters.repulsiveRadius" step="0.05" type="range"
                         min="0.05" max="0.8"
                         class="w-[120px] mr-2 w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700">
-                      <span class="w-[30px]">{{ parameters.repulsiveRadius }}</span>
+                      <span class="w-[100px]">{{ parameters.repulsiveRadius }}</span>
                     </div>
                     <div v-if="activeSim === 'basicLife'">
                       <div class="flex items-center">
