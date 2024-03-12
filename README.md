@@ -1,6 +1,13 @@
-# Vue 3 + TypeScript + Vite
+<div style="position:relative; width:100%; height:0px; padding-bottom:58.347%"><iframe allow="fullscreen" allowfullscreen height="100%" src="https://streamable.com/e/cmkm4y?" width="100%" style="border:none; width:100%; height:100%; position:absolute; left:0px; top:0px; overflow:hidden;"></iframe></div>
 
-This template should help get you started developing with Vue 3 and TypeScript in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+# Particle Life - webGPU
+
+Explanation of how this simulation was created:
+
+[Part 1](https://programmingattack.netlify.app/articles/optimizing-the-article-life-from-a-thousand-to-a-milion-particles)
+[Part 2](https://programmingattack.netlify.app/articles/optimizing-the-particle-life-javascript-quadtree)
+
+# [Online](https://webgpulife.netlify.app)
 
 ## Recommended IDE Setup
 
