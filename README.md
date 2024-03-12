@@ -1,5 +1,8 @@
 <div style="position:relative; width:100%; height:0px; padding-bottom:58.347%"><iframe allow="fullscreen" allowfullscreen height="100%" src="https://streamable.com/e/cmkm4y?" width="100%" style="border:none; width:100%; height:100%; position:absolute; left:0px; top:0px; overflow:hidden;"></iframe></div>
 
+[![Watch the video](https://imgur.com/a/sZWQR4b)](https://streamable.com/cmkm4y)
+
+
 # Particle Life - webGPU
 
 Explanation of how this simulation was created:
