@@ -36,8 +36,9 @@ onMounted(async () => {
   }
 
   renderFrame();
-
   function renderFrame() {
+  console.log(screenRatio)
+
     //Clear previous positions on every frame
     context!.fillStyle = "black";
     context!.fillRect(0, 0, canvas!.clientWidth, canvas!.clientHeight);
@@ -47,10 +48,7 @@ onMounted(async () => {
       context!.beginPath();
       let x = positionsX[i] * canvas!.clientWidth;
       let y = positionsY[i] * canvas!.clientHeight
-      //Adjusting position for two cases:
-      //a) mobile screens -> x<y
-      //b) desktops -> x>y
-      x = screenRatio < 1 ? x * (1 / screenRatio) : x;
+      //Adjusting position:
       y = screenRatio > 1 ? y * screenRatio : y;
       if (!(x < 1) && !(y < 1) && !(x > canvas!.clientWidth - 1) && !(y > canvas!.clientHeight - 1)) { //avoid blinking at edges due to how space wrapping is done
         //Drawing the actual particle
