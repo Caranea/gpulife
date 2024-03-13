@@ -7,12 +7,11 @@ import Particles from './components/Particles.vue';
 import BasicPL from './components/BasicPL.vue';
 import Osci from './components/Osci.vue';
 import Optimized from './components/Optimized.vue';
-
+import Acknowledgment from './components/Acknowledgment.vue'
 const open = ref(window.localStorage.getItem('open') ? JSON.parse(window.localStorage.getItem('open')!) : true)
 const fps = ref('')
 const parameters = ref(window.localStorage.getItem('parameters') ? JSON.parse(window.localStorage.getItem('parameters')!) : defaultConfig);
 const activeSim = ref(window.localStorage.getItem('sim') as unknown as Ref<string> || 'webGPU')
-const maxRadius = ref((2 * (64000 / parameters.value.particlesCountGPU)) > 2.0 ? 2.0 : (2 * (64000 / parameters.value.particlesCountGPU)).toFixed(1))
 
 function switchSim(sim: string) {
   window.localStorage.setItem('sim', sim);
@@ -40,6 +39,7 @@ function resetParameters() {
 </script>
 
 <template>
+  <Acknowledgment/>
   <div class="flex">
     <div v-if="activeSim === 'webGPU'">
       <Particles @fps="fps = $event" />
@@ -109,7 +109,7 @@ function resetParameters() {
                         class="text-xs  w-[100px] block mr-2 text-sm font-medium text-gray-900 dark:text-white">Particles
                       </label>
                       <input @change="updateParameters()" v-model="parameters.particlesCountGPU" type="range"
-                        step="6400" min="6400" max="1024000"
+                        step="6400" min="6400" :max="4*1024000"
                         class="w-[120px] mr-2 w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700">
                       <span class="w-[100px]">{{ parameters.particlesCountGPU }}</span>
                     </div>
@@ -135,8 +135,8 @@ function resetParameters() {
                       <label
                         class="text-xs w-[100px] block mr-2 text-sm font-medium text-gray-900 dark:text-white">Radius
                       </label>
-                      <input @change="updateParameters()" v-model="parameters.interactionRadius" step="0.1" type="range"
-                        min="0.1" :max="maxRadius"
+                      <input @change="updateParameters()" v-model="parameters.interactionRadius" step="0.05" type="range"
+                        min="0.1" max="2.0"
                         class="w-[120px] mr-2 w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700">
                       <span class="w-[100px]">{{ parameters.interactionRadius }}</span>
                     </div>
