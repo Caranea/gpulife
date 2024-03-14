@@ -9,6 +9,7 @@ Explanation of how this simulation was created:
 
 [Part 1](https://programmingattack.netlify.app/articles/optimizing-the-article-life-from-a-thousand-to-a-milion-particles)
 [Part 2](https://programmingattack.netlify.app/articles/optimizing-the-particle-life-javascript-quadtree)
+[Part 3](https://programmingattack.netlify.app/articles/optimizing-the-article-life-millions-of-particles-with-webgpu)
 
 # [Online](https://webgpulife.netlify.app)
 
