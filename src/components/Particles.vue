@@ -12,7 +12,7 @@ const parameters = window.localStorage.getItem('parameters') ? JSON.parse(window
 const m = parameters.colorsNumber;
 const workGroupSize = 64;
 const workGroupsNum = Math.floor(parameters.particlesCountGPU / 64);
-const particleCount = workGroupSize * workGroupsNum;
+const particleCount = parameters.particlesCountGPU;
 const particleSize = 1;
 const interactionRadius = parameters.interactionRadius * 0.9999;
 const axisDivisionCount = (Math.floor(2 / interactionRadius))
@@ -59,14 +59,14 @@ onMounted(async () => {
     positionBufferData[i + 3] = 1;
   }
 
-  let sectors: any[] = [];
-  let currentIndexes: number[] = [];
+  let sectors: number[] = [];
+  let sectorsLengths: number[] = [];
 
   for (let i = 0; i < axisDivisionCount; i++) {
     for (let j = 0; j < axisDivisionCount; j++) {
       for (let k = 0; k < axisDivisionCount; k++) {
         sectors.push([])
-        currentIndexes.push(0)
+        sectorsLengths.push(0)
       }
     }
   }
@@ -85,14 +85,14 @@ onMounted(async () => {
             (particle[1] > (-1) + (axisDivisionLength * j) && particle[1] < (-1) + (axisDivisionLength * (j + 1))) &&
             (particle[2] > (-1) + (axisDivisionLength * k) && particle[2] < (-1) + (axisDivisionLength * (k + 1)))) {
             const sectorsIndex = i + (j * axisDivisionCount) + (k * Math.pow(axisDivisionCount, 2))
-            const index = currentIndexes[sectorsIndex]
+            const index = sectorsLengths[sectorsIndex]
 
             sectors[sectorsIndex][index] = particle[0]
             sectors[sectorsIndex][index + 1] = particle[1]
             sectors[sectorsIndex][index + 2] = particle[2]
             sectors[sectorsIndex][index + 3] = 1
 
-            currentIndexes[sectorsIndex] += 4
+            sectorsLengths[sectorsIndex] += 4
           }
         }
       }
@@ -165,19 +165,18 @@ onMounted(async () => {
   const computeShaderModule = device.createShaderModule({
     code: `
             @group(0) @binding(0) var<storage, read_write> positions: array<vec4f>;
-            @group(0) @binding(1) var<storage, read_write> velocities: array<vec4f>; 
+            @group(0) @binding(1) var<storage, read_write> velocities: array<vec3f>; 
             @group(0) @binding(2) var<storage> colors: array<i32>; 
             @group(0) @binding(3) var<storage> attraction: array<f32>; 
             @group(0) @binding(4) var<storage> indexes: array<u32>; 
 
             @compute @workgroup_size(${workGroupSize})
-            fn cs(@builtin(global_invocation_id) global_id: vec3u) { 
+            fn cs(@builtin(global_invocation_id) global_id: vec3u) {
                 let index = global_id.x;
                 var position = positions[index].xyz;
                 var velocity = velocities[index].xyz;
                 var sectorsStartIndex: u32;
                 var sectorsEndIndex: u32;
-
                 for(var i: i32 = 0; i < ${firstIndexes.length}; i+=1) {
                   if (i <= ${firstIndexes.length - 2}) {
                     if (index > indexes[i] && index < indexes[i+1]) {
@@ -207,19 +206,16 @@ onMounted(async () => {
                   let dist = sqrt((xdiff*xdiff) + (ydiff*ydiff) + (zdiff*zdiff));
 
                   if (dist < interactionRadius) {
-                    var forceV = attraction[(${m}*colors[index])+colors[i]];
+                    let forceV = attraction[(${m}*colors[index])+colors[i]];
                     let ratio = dist/interactionRadius;
                     let repF = 0.2;
-
-                    var force: f32;
+                    let force =  forceV * (1.0 - ratio) * forceFactor;
 
                     if (ratio > repF) {
-                      force =  forceV * (1.0 - ratio) * forceFactor;
                       forcex += xdiff*force;
                       forcey += ydiff*force;
                       forcez += zdiff*force;
                     } else if (ratio <= repF) {
-                      force =  forceV * (1.0 - ratio) * forceFactor  ;
                       forcex -= xdiff*force;
                       forcey -= ydiff*force;
                       forcez -= zdiff*force;
@@ -231,10 +227,10 @@ onMounted(async () => {
                 velocity.y+=forcey;
                 velocity.z+=forcez;
 
-                velocity*=0.3; // friction
+                velocity*=0.3; 
 
                 positions[index] = vec4f(position + velocity, 1);
-                velocities[index] = vec4f(velocity, 0);
+                velocities[index] = vec3f(velocity);
             }
 
         `
@@ -308,7 +304,6 @@ onMounted(async () => {
     size: colorBufferData.byteLength,
     usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
   });
-
   device.queue.writeBuffer(colorBuffer, 0, colorBufferData);
 
   const renderShaderModule = device.createShaderModule({
