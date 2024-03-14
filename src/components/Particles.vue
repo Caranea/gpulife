@@ -120,7 +120,6 @@ onMounted(async () => {
     size: positionBufferData.byteLength,
     usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST | GPUBufferUsage.STORAGE,
   });
-
   device.queue.writeBuffer(positionBuffer, 0, positionBufferData);
 
   text.value = 'Preparing remaining buffers...'
@@ -129,47 +128,38 @@ onMounted(async () => {
     size: firstIndexes.byteLength,
     usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.STORAGE,
   });
-
   device.queue.writeBuffer(indexesBuffer, 0, firstIndexes);
 
   let computeColorsBufferData = new Int32Array(particleCount);
   for (let i = 0; i < positionBufferData.length; i++) {
     computeColorsBufferData[i] = Math.floor(Math.random() * m);
   }
-
   const computeColorsBuffer = device.createBuffer({
     size: computeColorsBufferData.byteLength,
     usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.STORAGE,
   });
-
   device.queue.writeBuffer(computeColorsBuffer, 0, computeColorsBufferData);
 
   let attractionBufferData = new Float32Array(m * m);
-
   for (let i = 0; i < attractionBufferData.length; i++) {
     attractionBufferData[i] = matrix.flat()[i]
   }
-
   const attractionBuffer = device.createBuffer({
     size: attractionBufferData.byteLength,
     usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.STORAGE,
   });
 
   device.queue.writeBuffer(attractionBuffer, 0, attractionBufferData);
-
-  const velocityBuffer = device.createBuffer({
-    size: 16 * particleCount,
-    usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST | GPUBufferUsage.STORAGE,
-  });
-
-  const velocityBufferData = new Float32Array(particleCount * 4);
-  for (let i = 0; i < velocityBufferData.length; i += 4) {
+  const velocityBufferData = new Float32Array(particleCount * 3);
+  for (let i = 0; i < velocityBufferData.length; i += 3) {
     velocityBufferData[i] = 0.0;
     velocityBufferData[i + 1] = 0.0;
     velocityBufferData[i + 2] = 0.0;
-    velocityBufferData[i + 3] = 0;
   }
-
+  const velocityBuffer = device.createBuffer({
+    size: velocityBufferData.byteLength,
+    usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.STORAGE,
+  });
   device.queue.writeBuffer(velocityBuffer, 0, velocityBufferData);
 
   const computeShaderModule = device.createShaderModule({
