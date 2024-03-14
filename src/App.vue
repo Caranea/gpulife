@@ -8,7 +8,8 @@ import BasicPL from './components/BasicPL.vue';
 import Osci from './components/Osci.vue';
 import Optimized from './components/Optimized.vue';
 import Acknowledgment from './components/Acknowledgment.vue'
-const open = ref(window.localStorage.getItem('open') ? JSON.parse(window.localStorage.getItem('open')!) : true)
+
+const open = ref(!window.localStorage.getItem("acknowledged") ? false : window.localStorage.getItem('open') ? JSON.parse(window.localStorage.getItem('open')!) : true)
 const fps = ref('')
 const parameters = ref(window.localStorage.getItem('parameters') ? JSON.parse(window.localStorage.getItem('parameters')!) : defaultConfig);
 const activeSim = ref(window.localStorage.getItem('sim') as unknown as Ref<string> || 'webGPU')
