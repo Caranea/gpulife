@@ -59,7 +59,7 @@ onMounted(async () => {
     positionBufferData[i + 3] = 1;
   }
 
-  let sectors: number[] = [];
+  let sectors: number[][] = [];
   let sectorsLengths: number[] = [];
 
   for (let i = 0; i < axisDivisionCount; i++) {
